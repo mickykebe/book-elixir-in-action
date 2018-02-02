@@ -16,7 +16,8 @@ defmodule Todo.Database do
   def init(db_folder) do
     File.mkdir_p(db_folder)
     worker_list = Enum.reduce(0..2, Map.new, fn(key, acc) ->
-      Map.put(acc, key, Todo.DatabaseWorker.start(db_folder))
+      {:ok, worker_pid} = Todo.DatabaseWorker.start(db_folder)
+      Map.put(acc, key, worker_pid)
      end)
     {:ok, worker_list}
   end
@@ -30,6 +31,7 @@ defmodule Todo.Database do
 
   def handle_call({:get, key}, caller, worker_list) do
     worker_pid = get_worker(key, worker_list)
+    IO.inspect(worker_pid)
 
     # don't know which is the right answer
 
@@ -37,8 +39,10 @@ defmodule Todo.Database do
     #   data = Todo.DatabaseWorker.get(worker_pid, key)
     #   GenServer.reply(caller, data)
     # end)
-    Todo.DatabaseWorker.get(worker_pid, key)
-    {:noreply, worker_list}
+    # {:noreply, worker_list}
+    data = Todo.DatabaseWorker.get(worker_pid, key)
+    {:reply, data, worker_list}
+    
   end
 
   defp get_worker(key, worker_list) do
