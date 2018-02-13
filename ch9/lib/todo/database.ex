@@ -2,7 +2,7 @@ defmodule Todo.Database do
   use GenServer
 
   def start_link(db_folder) do
-    # IO.puts "Starting database server."
+    IO.puts "Starting database server."
     GenServer.start_link(__MODULE__, db_folder, name: :database_server)
   end
 
@@ -30,21 +30,18 @@ defmodule Todo.Database do
     {:noreply, worker_list}
   end
 
-  def handle_call({:get, key}, from, worker_list) do
+  def handle_call({:get, key}, _, worker_list) do
     worker_pid = get_worker(key, worker_list)
+
+    # don't know which is the right answer
 
     # spawn(fn ->
     #   data = Todo.DatabaseWorker.get(worker_pid, key)
     #   GenServer.reply(caller, data)
     # end)
     # {:noreply, worker_list}
-    
-    
-    # data = Todo.DatabaseWorker.get(worker_pid, key)
-    # {:reply, data, worker_list}
-
-    Todo.DatabaseWorker.get(worker_pid, key, from)
-    {:noreply, worker_list}
+    data = Todo.DatabaseWorker.get(worker_pid, key)
+    {:reply, data, worker_list}
     
   end
 
