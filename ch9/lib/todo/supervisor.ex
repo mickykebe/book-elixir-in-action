@@ -6,10 +6,11 @@ defmodule Todo.Supervisor do
   end
 
   def init(_) do
-    processes = [
-      worker(Todo.Database, ["./persist/"]),
-      worker(Todo.Cache, [])
+    children = [
+      {Todo.ProcessRegistry, []},
+      Supervisor.child_spec({Todo.SystemSupervisor, []}, type: :supervisor)
     ]
-    supervise(processes, strategy: :one_for_one)
+
+    Supervisor.init(children, strategy: :rest_for_one)
   end
 end
